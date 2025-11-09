@@ -22,8 +22,8 @@ The SkyPanelV2 Worker Agent is responsible for executing application builds and 
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd skypanelv2/worker-agent
+git clone https://github.com/skyvps360/worker-agent
+cd worker-agent
 
 # Install dependencies
 npm install
@@ -37,16 +37,16 @@ npm run build
 The worker agent is configured via environment variables. Create a `.env` file:
 
 ```env
-# SkyPanel connection
-SKYPANEL_URL=https://your-skypanel.com
-WORKER_NODE_ID=your-node-id
+# SkyPanel connection (uses api port)
+SKYPANEL_URL=http://localhost:3001
+WORKER_NODE_ID=node-01
 WORKER_AUTH_TOKEN=your-auth-token
 
 # Worker identification
 WORKER_NAME=worker-01
 WORKER_HOSTNAME=build-server-01
-WORKER_IP_ADDRESS=192.168.1.100
-WORKER_PORT=3001
+WORKER_IP_ADDRESS=127.0.0.1
+WORKER_PORT=3002
 
 # Build configuration
 WORKSPACE_DIR=/tmp/skypanel-builds
@@ -56,8 +56,8 @@ CLEANUP_INTERVAL_MINUTES=30
 
 # Docker configuration (optional)
 DOCKER_HOST=/var/run/docker.sock
-# DOCKER_HOST=tcp://localhost:2376
-# DOCKER_PORT=2376
+# DOCKER_HOST=tcp://localhost:2375
+# DOCKER_PORT=2375
 
 # Logging
 LOG_LEVEL=info
@@ -75,7 +75,7 @@ NODE_ENV=production
 
 - `WORKER_NODE_ID` - Existing node ID (for reconnection)
 - `WORKER_AUTH_TOKEN` - Existing auth token (for reconnection)
-- `WORKER_PORT` - Port for worker communication (default: 3001)
+- `WORKER_PORT` - Port for worker communication (default: 3002)
 - `WORKSPACE_DIR` - Directory for build artifacts (default: /tmp/skypanel-builds)
 - `MAX_CONCURRENT_BUILDS` - Maximum concurrent builds (default: 3)
 - `BUILD_TIMEOUT_MINUTES` - Build timeout in minutes (default: 15)
@@ -90,7 +90,7 @@ NODE_ENV=production
 If you need to re-use an existing worker's `WORKER_NODE_ID` and `WORKER_AUTH_TOKEN`, you can dump the latest values directly from the database without scrolling through logs. From the repository root run:
 
 ```bash
-npx tsx scripts/show-worker-credentials.ts
+node scripts/show-worker-credentials.ts
 ```
 
 This prints the most recent entries from `paas_worker_nodes` along with the decoded auth token so you can copy the values into `worker-agent/.env`.
@@ -138,7 +138,7 @@ docker build -t skypanel-worker-agent .
 docker run -d \
   --name skypanel-worker \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -e SKYPANEL_URL=https://your-skypanel.com \
+  -e SKYPANEL_URL=http://localhost:3001 \
   -e WORKER_NAME=docker-worker-01 \
   -e WORKER_HOSTNAME=docker-worker-01 \
   -e WORKER_IP_ADDRESS=172.17.0.1 \
@@ -199,7 +199,7 @@ tail -f logs/combined.log
 The worker agent exposes a status endpoint (when running with HTTP server):
 
 ```bash
-curl http://localhost:3001/status
+curl http://localhost:3002/status
 ```
 
 ## Security Considerations
